@@ -146,7 +146,7 @@ export async function select<T>(
     const visibleItems = items.slice(windowStart, windowEnd);
     const headerMessage = truncateAnsi(message, Math.max(1, columns - 4));
     writeLine(`${ANSI.dim}┌  ${ANSI.reset}${headerMessage}`);
-    
+
     if (subtitle) {
       writeLine(`${ANSI.dim}│${ANSI.reset}`);
       const sub = truncateAnsi(subtitle, Math.max(1, columns - 4));
@@ -180,8 +180,8 @@ export async function select<T>(
         labelText = colorCode ? `${colorCode}${item.label}${ANSI.reset}` : item.label;
         if (item.hint) labelText += ` ${ANSI.dim}${item.hint}${ANSI.reset}`;
       } else {
-        labelText = colorCode 
-          ? `${ANSI.dim}${colorCode}${item.label}${ANSI.reset}` 
+        labelText = colorCode
+          ? `${ANSI.dim}${colorCode}${item.label}${ANSI.reset}`
           : `${ANSI.dim}${item.label}${ANSI.reset}`;
         if (item.hint) labelText += ` ${ANSI.dim}${item.hint}${ANSI.reset}`;
       }
@@ -251,7 +251,7 @@ export async function select<T>(
 
     const findNextSelectable = (from: number, direction: 1 | -1): number => {
       if (items.length === 0) return from;
-      
+
       let next = from;
       do {
         next = (next + direction + items.length) % items.length;

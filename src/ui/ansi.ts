@@ -12,7 +12,7 @@ export const ANSI = {
   clearLine: '\x1b[2K',
   clearScreen: '\x1b[2J',
   moveTo: (row: number, col: number) => `\x1b[${row};${col}H`,
-  
+
 
   cyan: '\x1b[36m',
   green: '\x1b[32m',
@@ -32,18 +32,18 @@ export type KeyAction = 'up' | 'down' | 'enter' | 'escape' | 'escape-start' | nu
  */
 export function parseKey(data: Buffer): KeyAction {
   const s = data.toString();
-  
+
 
   if (s === '\x1b[A' || s === '\x1bOA') return 'up';
   if (s === '\x1b[B' || s === '\x1bOB') return 'down';
-  
+
 
   if (s === '\r' || s === '\n') return 'enter';
-  
+
   if (s === '\x03') return 'escape';
-  
+
   if (s === '\x1b') return 'escape-start';
-  
+
   return null;
 }
 

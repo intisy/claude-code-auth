@@ -88,7 +88,7 @@ export async function showAuthMenu(accounts: AccountInfo[]): Promise<AuthMenuAct
   ];
 
   while (true) {
-    const result = await select(items, { 
+    const result = await select(items, {
       message: 'Google accounts (Antigravity)',
       subtitle: 'Select an action or account',
       clearScreen: true,
@@ -123,7 +123,7 @@ export async function showAccountDetails(account: AccountInfo): Promise<AccountA
       { label: 'Manage proxies', value: 'proxies' as const, color: 'cyan' },
       { label: 'Refresh token', value: 'refresh' as const, color: 'cyan' },
       { label: 'Delete this account', value: 'delete' as const, color: 'red' },
-    ], { 
+    ], {
       message: header,
       subtitle: subtitleParts.join(' | '),
       clearScreen: true,
@@ -154,7 +154,7 @@ export type ProxyMenuAction =
 async function promptProxyMenuFallback(accountLabel: string, currentProxies: string[]): Promise<ProxyMenuAction> {
   const readline = await import('node:readline/promises');
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  
+
   try {
     console.log(`\nManage Proxies: ${accountLabel}`);
     if (currentProxies.length > 0) {
@@ -163,12 +163,12 @@ async function promptProxyMenuFallback(accountLabel: string, currentProxies: str
     } else {
       console.log(`No proxies configured.`);
     }
-    
+
     while (true) {
       const options = currentProxies.length > 0 ? '(a)dd, (r)emove <num>, (c)lear, (b)ack' : '(a)dd, (b)ack';
       const answer = await rl.question(`Choose action ${options}: `);
       const normalized = answer.trim().toLowerCase();
-      
+
       if (normalized === 'a' || normalized === 'add') {
         return { action: 'add' };
       }
@@ -206,7 +206,7 @@ export async function showProxyMenu(accountLabel: string, currentProxies: string
     if (currentProxies.length > 0) {
       items.push({ label: '', value: { action: 'back' }, separator: true });
       items.push({ label: 'Current proxies', value: { action: 'back' }, kind: 'heading' });
-      
+
       currentProxies.forEach((proxy, idx) => {
         items.push({
           label: `Remove proxy ${idx + 1}`,
@@ -215,7 +215,7 @@ export async function showProxyMenu(accountLabel: string, currentProxies: string
           color: 'yellow'
         });
       });
-      
+
       items.push({ label: '', value: { action: 'back' }, separator: true });
       items.push({ label: 'Clear all proxies', value: { action: 'clear' }, color: 'red' });
     }
@@ -240,7 +240,7 @@ export async function showProxyMenu(accountLabel: string, currentProxies: string
 export async function promptProxyUrl(): Promise<string | undefined> {
   const readline = await import('node:readline/promises');
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  
+
   try {
     const answer = await rl.question(`\n${ANSI.cyan}?${ANSI.reset} Enter proxy URL (e.g. http://user:pass@host:port/): `);
     return answer.trim() || undefined;

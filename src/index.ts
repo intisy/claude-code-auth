@@ -46,7 +46,7 @@ const claudeAuthPlugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
     },
     config: async () => {
       let accounts = loadAccounts();
-      
+
       while (true) {
         // Map our internal Account to the UI's AccountInfo format
         const accountInfos: AccountInfo[] = accounts.map((acc, index) => ({
@@ -71,18 +71,17 @@ const claudeAuthPlugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
           const sessionKey = await rl.question('Enter sessionKey cookie value: ');
           rl.close();
 
-          accounts.forEach(a => a.isActive = false); // Deactivate others
+          accounts.forEach(a => a.isActive = false);
           accounts.push({ email, sessionKey, isActive: true, addedAt: Date.now() });
           saveAccounts(accounts);
           console.log('Account added and set as active.');
-        } 
+        }
         else if (action.type === 'delete-all') {
           accounts = [];
           saveAccounts(accounts);
           console.log('All accounts deleted.');
         }
         else if (action.type === 'select-account') {
-           // Toggle active status or perform an action
            const idx = action.account.index;
            if (idx >= 0 && idx < accounts.length) {
              accounts.forEach(a => a.isActive = false);
