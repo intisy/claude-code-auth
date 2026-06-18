@@ -56,14 +56,29 @@ async function handle(request, ctx) {
 
     let response;
     const started = Date.now();
-    try { response = await fetch(prepared.request, prepared.init); }
+    let proxyOk = false;
+    try { response = await fetch(prepared.request, prepared.init); proxyOk = !!proxyUrl; }
     catch (error) {
-      if (proxyUrl) proxyManager.reportResult(proxyUrl, false);
-      log("fetch failed: " + error);
-      manager.reportError(account.id, attempt, String(error));
-      continue;
+      if (proxyUrl) {
+        proxyManager.reportResult(proxyUrl, false);
+        // proxy unreachable -> retry directly (a dead proxy gives no isolation anyway)
+        log("fetch via proxy " + proxyUrl + " failed: " + error + " — retrying directly");
+        try {
+          const directInit = { ...prepared.init };
+          delete directInit.proxy;
+          response = await fetch(prepared.request, directInit);
+        } catch (directError) {
+          log("direct retry failed: " + directError);
+          manager.reportError(account.id, attempt, String(directError));
+          continue;
+        }
+      } else {
+        log("fetch failed: " + error);
+        manager.reportError(account.id, attempt, String(error));
+        continue;
+      }
     }
-    if (proxyUrl) proxyManager.reportResult(proxyUrl, true, Date.now() - started);
+    if (proxyOk) proxyManager.reportResult(proxyUrl, true, Date.now() - started);
 
     if (isRateLimitStatus(response.status)) {
       lastResponse = response;
