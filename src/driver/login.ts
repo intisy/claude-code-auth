@@ -71,8 +71,10 @@ export async function loginFlow() {
     url: authorization.url,
     instructions:
       "Sign in to Claude, then copy the authorization code shown (format: code#state) and paste it back here.",
-    complete: async () => {
-      const cb = await awaitPaste();
+    complete: async (input) => {
+      // opencode (method "code") passes the pasted code / redirect URL; the CLI
+      // passes nothing and we read it from the terminal.
+      const cb = input ? parsePastedCallback(input) : await awaitPaste();
       if (!cb || !cb.code) return null;
       // a bare pasted code has no state; rebuild it from this flow's own verifier
       const state = cb.state || encodeState({ verifier: authorization.verifier });
