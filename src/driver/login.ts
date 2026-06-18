@@ -89,14 +89,19 @@ export async function loginFlow() {
 
 export async function login(opts) {
   const log = (opts && opts.log) || ((message) => process.stderr.write(message + "\n"));
+  // opts.code: a code#state / redirect URL pasted as a CLI arg (container-friendly,
+  // no TTY needed — the PKCE verifier is recovered from the pasted state).
+  const pastedCode = opts && opts.code;
   const flow = await loginFlow();
-  log(
-    "Open this URL in your browser to authenticate with Claude:\n\n  " +
-      flow.url +
-      "\n\nAfter approving, copy the authorization code shown on the page and paste it below.\n",
-  );
-  tryOpenBrowser(flow.url);
-  const account = await flow.complete();
+  if (!pastedCode) {
+    log(
+      "Open this URL in your browser to authenticate with Claude:\n\n  " +
+        flow.url +
+        "\n\nAfter approving, copy the authorization code shown on the page and paste it below\n(or re-run: claude-code-auth login \"<code#state>\").\n",
+    );
+    tryOpenBrowser(flow.url);
+  }
+  const account = await flow.complete(pastedCode);
   if (!account) throw new Error("login failed");
   log("Logged in" + (account.email ? " as " + account.email : "") + " and saved to the claude-code account pool.");
   return account;

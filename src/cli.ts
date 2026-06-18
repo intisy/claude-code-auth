@@ -8,14 +8,17 @@ import { login } from "./driver/login.js";
 const PROVIDER_ID = "claude-code";
 
 function printUsage() {
-  process.stderr.write("usage: claude-code-auth <login|list|remove <email>>\n");
+  process.stderr.write("usage: claude-code-auth <login [code#state]|list|remove <email>>\n");
 }
 
 async function main() {
   const [command, argument] = process.argv.slice(2);
   switch (command) {
     case "login":
-      await login({ log: (message) => process.stdout.write(message + "\n") });
+      // `login` prompts for the code on the terminal; `login "<code#state>"`
+      // (or the full redirect URL) completes non-interactively — works in
+      // containers with no usable browser loopback.
+      await login({ log: (message) => process.stdout.write(message + "\n"), code: argument });
       return;
     case "list": {
       const accounts = listAccounts(PROVIDER_ID);
