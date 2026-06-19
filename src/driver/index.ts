@@ -10,13 +10,20 @@ import { models } from "./models.js";
 import { oauthConfig } from "./config.js";
 import { login, loginFlow } from "./login.js";
 import { createClaudeAccounts } from "./accounts-controller.js";
-import { getMaxAttempts, getSetting, setSetting } from "./settings.js";
+import {
+  getMaxAttempts,
+  getSelection,
+  getDefaultCooldownSeconds,
+  getMaxCooldownSeconds,
+  getSetting,
+  setSetting,
+} from "./settings.js";
 
 const PROVIDER_ID = "claude-code";
 const LANE = "messages"; // Claude subscription limits are account-wide
 
 const manager = new AccountManager(PROVIDER_ID, {
-  selection: "hybrid",
+  selection: getSelection(),
   oauth: oauthConfig(),
 });
 
@@ -129,10 +136,44 @@ export const driver = {
             max: 20,
             hint: "How many accounts to try before giving up on a request.",
           },
+          {
+            key: "account_selection_strategy",
+            label: "Account selection strategy",
+            type: "enum",
+            options: ["sticky", "round-robin", "hybrid"],
+            hint: "How accounts are picked across requests (applies on restart).",
+          },
+        ],
+      },
+      {
+        title: "Rate limits",
+        fields: [
+          {
+            key: "default_cooldown_seconds",
+            label: "Default cooldown (seconds)",
+            type: "number",
+            min: 1,
+            max: 3600,
+            hint: "Base cooldown (seconds) for a 429 with no retry-after; doubles per attempt.",
+          },
+          {
+            key: "max_cooldown_seconds",
+            label: "Max cooldown (seconds)",
+            type: "number",
+            min: 1,
+            max: 3600,
+            hint: "Maximum cooldown (seconds) the backoff can grow to.",
+          },
         ],
       },
     ],
-    get: (key) => (key === "max_account_attempts" ? getMaxAttempts() : getSetting(key, undefined)),
+    get: (key) => {
+      if (key === "max_account_attempts") return getMaxAttempts();
+      if (key === "account_selection_strategy") return getSelection();
+      if (key === "default_cooldown_seconds") return getDefaultCooldownSeconds();
+      if (key === "max_cooldown_seconds") return getMaxCooldownSeconds();
+      return getSetting(key, undefined);
+    },
     set: (key, value) => setSetting(key, value),
   },
 };

@@ -11,6 +11,7 @@ import {
   ANTHROPIC_VERSION,
   CLAUDE_CODE_SYSTEM,
 } from "../constants.js";
+import { getDefaultCooldownSeconds, getMaxCooldownSeconds } from "../driver/settings.js";
 
 function ensureClaudeCodeSystem(body) {
   if (!body || typeof body !== "object") return body;
@@ -79,6 +80,6 @@ export function parseResetMs(response, attempt = 0) {
     const secs = Number(retryAfter);
     if (!Number.isNaN(secs) && secs > 0) return Date.now() + secs * 1000;
   }
-  // exponential fallback: 1m, 2m, 4m...
-  return Date.now() + Math.min(60_000 * Math.pow(2, attempt), 15 * 60_000);
+  // exponential fallback: base doubles per attempt, capped at the configured max
+  return Date.now() + Math.min(getDefaultCooldownSeconds() * 1000 * Math.pow(2, attempt), getMaxCooldownSeconds() * 1000);
 }
