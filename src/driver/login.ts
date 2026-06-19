@@ -31,9 +31,7 @@ function awaitPaste() {
   if (!isTTY()) return Promise.resolve(null);
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve) => {
-    rl.question("Paste the authorization code (code#state) here, then Enter: ", (answer) =>
-      resolve(parsePastedCallback(answer)),
-    );
+    rl.question("Paste the authorization code (code#state) here, then Enter: ", (answer) => resolve(answer));
   }).finally(() => {
     try { rl.close(); } catch {}
   });
@@ -67,23 +65,25 @@ function toCoreAccount(result) {
 
 export async function loginFlow() {
   const authorization = await authorizeClaude();
+  const finish = async (cb) => {
+    if (!cb || !cb.code) return null;
+    // a bare pasted code has no state; rebuild it from this flow's own verifier
+    const state = cb.state || encodeState({ verifier: authorization.verifier });
+    const result = await exchangeClaude(cb.code, state);
+    if (result.type !== "success") return null;
+    const account = toCoreAccount(result);
+    addAccount(PROVIDER_ID, account);
+    return account;
+  };
   return {
     url: authorization.url,
     instructions:
-      "Sign in to Claude, then copy the authorization code shown (format: code#state) and paste it back here.",
-    complete: async (input) => {
-      // opencode (method "code") passes the pasted code / redirect URL; the CLI
-      // passes nothing and we read it from the terminal.
-      const cb = input ? parsePastedCallback(input) : await awaitPaste();
-      if (!cb || !cb.code) return null;
-      // a bare pasted code has no state; rebuild it from this flow's own verifier
-      const state = cb.state || encodeState({ verifier: authorization.verifier });
-      const result = await exchangeClaude(cb.code, state);
-      if (result.type !== "success") return null;
-      const account = toCoreAccount(result);
-      addAccount(PROVIDER_ID, account);
-      return account;
-    },
+      "Sign in to Claude, then copy the authorization code shown (format: code#state) and paste it here.",
+    // paste path: opencode's "code" method + the in-tab paste both pass the text.
+    // Claude's redirect just displays a code (no localhost), so there is no
+    // loopback to expose — pasting the code is how the flow completes.
+    complete: (input) => finish(parsePastedCallback(input)),
+    cancel: () => {},
   };
 }
 
@@ -101,7 +101,7 @@ export async function login(opts) {
     );
     tryOpenBrowser(flow.url);
   }
-  const account = await flow.complete(pastedCode);
+  const account = await flow.complete(pastedCode != null ? pastedCode : await awaitPaste());
   if (!account) throw new Error("login failed");
   log("Logged in" + (account.email ? " as " + account.email : "") + " and saved to the claude-code account pool.");
   return account;
