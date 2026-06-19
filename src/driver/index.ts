@@ -10,9 +10,9 @@ import { models } from "./models.js";
 import { oauthConfig } from "./config.js";
 import { login, loginFlow } from "./login.js";
 import { createClaudeAccounts } from "./accounts-controller.js";
+import { getMaxAttempts, getSetting, setSetting } from "./settings.js";
 
 const PROVIDER_ID = "claude-code";
-const MAX_ATTEMPTS = 4; // account rotations before giving up
 const LANE = "messages"; // Claude subscription limits are account-wide
 
 const manager = new AccountManager(PROVIDER_ID, {
@@ -39,8 +39,9 @@ async function handle(request, ctx) {
   try { bodyText = await request.clone().text(); } catch { bodyText = undefined; }
   const init = { method: request.method, headers: Object.fromEntries(request.headers), body: bodyText };
 
+  const maxAttempts = getMaxAttempts(); // read per-request so config edits apply without a restart
   let lastResponse = null;
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const acquired = await manager.acquire(LANE);
     if (!acquired || !acquired.account) return errorResponse(503, "No available Claude account. Run `claude-code-auth login`.");
     const account = acquired.account;
@@ -101,7 +102,7 @@ async function handle(request, ctx) {
     return response; // non-retryable upstream error -> surface as-is
   }
 
-  return lastResponse || errorResponse(502, "Claude request failed after " + MAX_ATTEMPTS + " attempts");
+  return lastResponse || errorResponse(502, "Claude request failed after " + maxAttempts + " attempts");
 }
 
 export const driver = {
@@ -115,6 +116,25 @@ export const driver = {
   loginFlow,
   accounts: createClaudeAccounts(manager),
   proxies: true,
+  settings: {
+    groups: [
+      {
+        title: "Account rotation",
+        fields: [
+          {
+            key: "max_account_attempts",
+            label: "Max account attempts",
+            type: "number",
+            min: 1,
+            max: 20,
+            hint: "How many accounts to try before giving up on a request.",
+          },
+        ],
+      },
+    ],
+    get: (key) => (key === "max_account_attempts" ? getMaxAttempts() : getSetting(key, undefined)),
+    set: (key, value) => setSetting(key, value),
+  },
 };
 
 export const ClaudeCodeProvider = defineProvider(driver).opencode;
