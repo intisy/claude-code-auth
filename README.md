@@ -29,8 +29,9 @@ flowchart TD
 
 ## Structure
 
-- `src/` — TypeScript source (`driver/` driver + OAuth config/login, `oauth/` PKCE flow, `plugin/request.ts` Anthropic rewrite, `handler.ts`/`index.ts`/`cli.ts` entries)
+- `src/` — TypeScript source (`driver/` driver + OAuth config/login, `oauth/` PKCE flow, `plugin/request.ts` Anthropic rewrite, `commands.ts` slash-commands, `handler.ts`/`index.ts`/`cli.ts` entries)
 - `core-auth/` — the shared auth engine (git submodule)
+- `core/` — shared [`intisy-ai/core`](https://github.com/intisy-ai/core) submodule (config + logging + command framework), bundled in
 - `dist/` — Compiled bundles: `index.js` (OpenCode), `handler.js` (Claude loader), `cli.js` (CLI)
 
 ## Installation
@@ -58,6 +59,23 @@ Accounts are stored by core-auth at `~/.config/opencode/core-auth-accounts.json`
 
 - **OpenCode**: registers a custom `claude-code` provider (SDK `@ai-sdk/anthropic`); run `opencode run -m claude-code/claude-sonnet-4-6`.
 - **Claude Code**: select `claude-code` in the loader's Providers tab; the proxy routes Claude requests through your subscription accounts.
+
+Plugin config (`claude-code-auth.json`) is editable from chat via `/claude-code-auth-config`.
+
+## Commands
+
+Deployed automatically to both apps on load (`~/.config/opencode/command/` and `~/.claude/commands/`):
+
+| Command | Description |
+| --- | --- |
+| `/claude-code-auth-config` | View/change any config key: `list`, `get <key>`, `set <key> <value>`. 100% of the config is reachable here. |
+| `/claude-accounts` | List signed-in Claude subscription accounts and their enabled state. |
+
+## Dependencies
+
+- **`core`** (required) — bundled git submodule (config + logging + commands); no separate install.
+- **`core-auth`** (required) — bundled git submodule (account store + OAuth/rotation engine).
+- **`sync-bridge`** (optional) — mirrors the account store to the other app when present.
 
 ## Logging
 
