@@ -8,7 +8,7 @@
   "author": "intisy",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/intisy/claude-code-auth.git"
+    "url": "git+https://github.com/intisy-ai/claude-code-auth.git"
   },
   "keywords": ["opencode", "claude", "claude-code", "anthropic", "oauth", "subscription", "provider", "auth"],
   "engines": { "node": ">=20.0.0" },
