@@ -16,7 +16,7 @@ flowchart TD
     end
     subgraph Core [core-auth]
         MGR[AccountManager: select / refresh / rotate]
-        STORE[(core-auth-accounts.json)]
+        STORE[(accounts.json)]
         MGR <--> STORE
     end
     CC[Claude Code loader proxy] -->|dist/handler.js handle| HANDLE
@@ -55,7 +55,7 @@ npx claude-code-auth list
 
 ## Configuration
 
-Accounts are stored by core-auth at `~/.config/opencode/core-auth-accounts.json` (and `~/.claude/...` for Claude Code). The OAuth client is the public Claude Code installed-app client; override the client id with `CLAUDE_CODE_CLIENT_ID` if needed.
+Accounts are stored by core-auth at `~/.config/opencode/accounts.json` (and `~/.claude/...` for Claude Code). The OAuth client is the public Claude Code installed-app client; override the client id with `CLAUDE_CODE_CLIENT_ID` if needed.
 
 - **OpenCode**: registers a custom `claude-code` provider (SDK `@ai-sdk/anthropic`); run `opencode run -m claude-code/claude-sonnet-4-6`.
 - **Claude Code**: select `claude-code` in the loader's Providers tab; the proxy routes Claude requests through your subscription accounts.
