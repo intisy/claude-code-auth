@@ -55,6 +55,8 @@ npx claude-code-auth list
 
 ## Configuration
 
+> Config files are **auto-created with defaults on first run** (via core `ensureConfig`). **Global console logging** for every plugin is toggled in `config/settings.json` (`logConsole: true`, the opencode.json-equivalent).
+
 Accounts are stored by core-auth at `~/.config/opencode/accounts.json` (and `~/.claude/...` for Claude Code). The OAuth client is the public Claude Code installed-app client; override the client id with `CLAUDE_CODE_CLIENT_ID` if needed.
 
 - **OpenCode**: registers a custom `claude-code` provider (SDK `@ai-sdk/anthropic`); run `opencode run -m claude-code/claude-sonnet-4-6`.
