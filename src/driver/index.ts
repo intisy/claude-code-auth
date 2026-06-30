@@ -118,6 +118,7 @@ export const driver = {
   opencodeProvider: "claude-code", // own namespace so OpenCode routes through our loader
   opencodeNpm: "@ai-sdk/anthropic",
   models,
+  sorts: ["leaderboard"],   // opt into core's built-in quality sort (manual is automatic)
   handle,
   login,
   loginFlow,
